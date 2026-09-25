@@ -1,90 +1,384 @@
+# ☁️ AWS Scalable & Secure Web Infrastructure
 
-# AWS 3-Tier Scalable & Secure Infrastructure Project
+A hands-on AWS cloud infrastructure project demonstrating **high availability, scalability, secure networking, load balancing, content delivery, and responsible cloud resource management**.
+
+The project uses Amazon VPC, EC2, Auto Scaling, Application Load Balancer, CloudFront, IAM, Security Groups, public/private subnet design, and NAT-based outbound connectivity.
+
+---
 
 ## 📌 Project Overview
-This project demonstrates the implementation of a *3-tier scalable and secure infrastructure on AWS* using core DevOps and cloud services.  
-The architecture is designed to handle real-world production traffic with high availability, fault tolerance, and security.
+
+This project demonstrates how a production-style web workload can be deployed on AWS using multiple infrastructure layers.
+
+The architecture was designed to:
+
+- distribute incoming traffic efficiently
+- scale EC2 capacity based on demand
+- improve global content delivery using CloudFront
+- isolate resources using VPC networking
+- monitor backend instance health
+- reduce direct exposure of compute resources
+- support high availability across Availability Zones
+- clean up cloud resources after validation to avoid unnecessary charges
 
 ---
 
-## 🏗 Architecture Overview
+## 🏗 Architecture
 
-![Architecture Diagram](architecture/Architecture-diagram.jpeg)
+![AWS Architecture](architecture/Architecture-diagram.jpeg)
 
+### Request Flow
 
-*Services Used:*
-- Amazon VPC
-- Public & Private Subnets
-- Internet Gateway & NAT Gateway
-- Application Load Balancer (ALB)
-- Auto Scaling Group (ASG)
-- EC2 Instances
-- CloudFront (CDN)
-- Security Groups
-- IAM
+```text
+User
+  │
+  ▼
+Amazon CloudFront
+  │
+  ▼
+Application Load Balancer
+  │
+  ▼
+Target Group
+  │
+  ▼
+EC2 Instances
+  │
+  ▼
+Application
+```
 
----
-
-## 🔹 Architecture Flow
-1. User accesses the application via *CloudFront*
-2. CloudFront forwards requests to *Application Load Balancer*
-3. ALB distributes traffic across *EC2 instances*
-4. EC2 instances run inside *private subnets*
-5. *NAT Gateway* allows outbound internet access securely
-6. *Auto Scaling Group* automatically scales instances based on demand
-
----
-
-## 📊 Key Features
-- High Availability across multiple Availability Zones
-- Automatic scaling of EC2 instances
-- Secure network using private subnets
-- Improved global performance using CloudFront
-- Cost-optimized and production-ready design
+The infrastructure is deployed inside an Amazon VPC with subnet segmentation, security groups, load balancing, and scaling components.
 
 ---
 
-## 🧪 Health Checks
-- ALB continuously monitors EC2 health
-- Unhealthy instances are replaced automatically
+## 🧰 AWS Services & Technologies
+
+| Service | Purpose |
+|---|---|
+| Amazon VPC | Provides isolated AWS networking |
+| Public & Private Subnets | Separates internet-facing and internal resources |
+| Internet Gateway | Provides internet connectivity to public resources |
+| NAT Gateway | Provides outbound internet access for private resources |
+| Amazon EC2 | Hosts the application workload |
+| Auto Scaling Group | Automatically adjusts EC2 capacity |
+| Application Load Balancer | Distributes traffic across healthy EC2 instances |
+| Target Groups | Routes requests and performs health checks |
+| Amazon CloudFront | Provides edge caching and global content delivery |
+| Security Groups | Controls inbound and outbound network traffic |
+| IAM | Provides controlled AWS access and permissions |
 
 ---
 
-## 🧹 Cleanup
-All AWS resources were deleted after project completion to avoid unnecessary billing.
+## 🔄 Architecture Flow
+
+### 1. User Request
+
+Users access the application through the CloudFront distribution.
+
+```text
+User → CloudFront
+```
+
+CloudFront acts as the entry point and helps deliver content using AWS edge locations.
+
+### 2. Load Balancing
+
+CloudFront forwards application traffic to the Application Load Balancer.
+
+```text
+CloudFront → ALB
+```
+
+The ALB distributes incoming requests across registered backend instances.
+
+### 3. Target Group
+
+The Application Load Balancer routes requests to healthy EC2 instances through a target group.
+
+```text
+ALB → Target Group → EC2
+```
+
+Health checks ensure that traffic is sent only to healthy instances.
+
+### 4. Auto Scaling
+
+EC2 instances are managed using an Auto Scaling design so application capacity can grow or shrink depending on workload requirements.
+
+### 5. Network Security
+
+The infrastructure is deployed inside an Amazon VPC with subnet separation and security-group rules controlling access between components.
+
+NAT-based outbound connectivity was configured during the implementation and later removed during project cleanup.
 
 ---
 
-## 📸 Screenshots
-Screenshots of all major components are available in the screenshots/ directory.
+## 🌍 CloudFront Distribution
+
+Amazon CloudFront was configured in front of the application infrastructure to improve content delivery and provide a global entry point.
+
+### Distribution
+
+![CloudFront Distribution](screenshots/cloudfront/cloudfront-distribution.jpeg)
+
+### CloudFront Application Output
+
+![CloudFront Output](screenshots/cloudfront/cloudfront-output.jpeg)
 
 ---
 
-## 🚀 Real-World Use Case
-This architecture is widely used for:
-- Web applications
-- E-commerce platforms
-- Company websites
-- APIs and microservices
+## ⚖️ Application Load Balancer
+
+An Application Load Balancer distributes incoming application traffic between available backend targets.
+
+![Application Load Balancer](screenshots/load-balancer/alb.jpeg)
+
+### Application Output Through ALB
+
+![ALB Output](screenshots/load-balancer/alb-output.jpeg)
+
+---
+
+## ❤️ Target Group Health
+
+Target groups were configured to monitor EC2 instances and route traffic only to healthy application targets.
+
+![Healthy Target Group](screenshots/target-group/target-group-healthy.jpeg)
+
+This helps improve availability because unhealthy targets can be removed from traffic routing automatically.
+
+---
+
+## 🖥 EC2 Compute Layer
+
+Amazon EC2 instances provide the compute layer for the application.
+
+![Running EC2 Instances](screenshots/ec2/running-ec2-instances.jpeg)
+
+The architecture was designed so multiple instances can operate behind the load balancer instead of relying on a single server.
+
+---
+
+## 🌐 VPC & Subnet Configuration
+
+The infrastructure was deployed inside a dedicated Amazon VPC.
+
+### Public Subnet 1
+
+![Public Subnet 1](screenshots/vpc-subnets/vpc-subnets-public-subnet-1.jpeg)
+
+### Public Subnet 2
+
+![Public Subnet 2](screenshots/vpc-subnets/vpc-subnets-public-subnet-2.jpeg)
+
+Using multiple subnets supports an architecture that can span multiple Availability Zones.
+
+---
+
+## 📈 Scalability
+
+The architecture incorporates multiple AWS scalability concepts:
+
+- Application Load Balancer for traffic distribution
+- Auto Scaling for dynamic compute capacity
+- multiple EC2 instances
+- multiple subnet design
+- CloudFront edge delivery
+- target-group health monitoring
+
+This reduces dependency on a single compute instance and makes the architecture better suited for changing workloads.
+
+---
+
+## 🔐 Security Design
+
+Security was considered at several layers of the infrastructure.
+
+### Network Isolation
+
+Resources were deployed within an Amazon VPC with subnet separation.
+
+### Security Groups
+
+Security groups control which traffic is allowed between AWS resources.
+
+### IAM
+
+IAM roles and policies were used to control AWS permissions.
+
+### Controlled Application Access
+
+Application traffic is routed through the load-balancing layer instead of exposing each backend instance as the primary application endpoint.
+
+---
+
+## ✅ Health Checks
+
+Application Load Balancer target-group health checks continuously verify backend instance availability.
+
+```text
+ALB
+ │
+ ▼
+Target Group Health Check
+ │
+ ├── Healthy → Receive traffic
+ │
+ └── Unhealthy → Removed from routing
+```
+
+This improves service reliability and helps prevent traffic from being sent to unhealthy application instances.
+
+---
+
+## 📂 Repository Structure
+
+```text
+AWS-3-Tier-Scalable-Secure-Infrastructure-using-ALB-Auto-Scaling-and-CloudFront/
+│
+├── README.md
+│
+├── architecture/
+│   └── Architecture-diagram.jpeg
+│
+├── notes/
+│   └── cleanup-steps.md
+│
+└── screenshots/
+    │
+    ├── cloudfront/
+    │   ├── cloudfront-distribution.jpeg
+    │   └── cloudfront-output.jpeg
+    │
+    ├── ec2/
+    │   └── running-ec2-instances.jpeg
+    │
+    ├── load-balancer/
+    │   ├── alb.jpeg
+    │   └── alb-output.jpeg
+    │
+    ├── target-group/
+    │   └── target-group-healthy.jpeg
+    │
+    └── vpc-subnets/
+        ├── vpc-subnets-public-subnet-1.jpeg
+        └── vpc-subnets-public-subnet-2.jpeg
+```
+
+---
+
+## 🚀 Key Features
+
+- AWS VPC-based network architecture
+- multi-subnet deployment design
+- Application Load Balancer
+- EC2 compute infrastructure
+- Auto Scaling architecture
+- CloudFront content delivery
+- target-group health monitoring
+- security-group-based network control
+- IAM-based access management
+- architecture documentation
+- AWS resource cleanup documentation
+
+---
+
+## 💼 Real-World Applications
+
+A similar architecture pattern can be used for:
+
+- web applications
+- e-commerce platforms
+- business websites
+- API backends
+- internal enterprise applications
+- horizontally scalable application workloads
+
+---
+
+## 🧹 AWS Resource Cleanup
+
+All AWS resources created for this project were intentionally removed after implementation and validation to avoid unnecessary cloud charges.
+
+Resources cleaned up included:
+
+```text
+CloudFront Distribution
+Application Load Balancer
+Target Groups
+Auto Scaling Group
+EC2 Instances
+NAT Gateway
+Elastic IPs
+Security Groups
+Subnets
+VPC
+```
+
+Detailed cleanup information is available here:
+
+➡️ [AWS Resource Cleanup Steps](notes/cleanup-steps.md)
+
+This demonstrates awareness of AWS cost management and responsible cloud resource usage.
 
 ---
 
 ## 🧠 Skills Demonstrated
-- AWS Networking (VPC, Subnets, NAT)
-- Load Balancing & Auto Scaling
+
+Through this project I gained practical experience with:
+
+- AWS networking
+- VPC architecture
+- subnet design
+- EC2 administration
+- Application Load Balancing
+- Auto Scaling concepts
 - CloudFront CDN
-- Infrastructure security best practices
-- Cost awareness and cleanup
+- AWS health checks
+- security groups
+- IAM
+- scalable infrastructure design
+- cloud cost awareness
+- architecture documentation
 
 ---
 
-##### Note on Infrastructure Screenshots
+## 📸 Deployment Evidence
 
-The VPC, private subnets, and NAT Gateway were created and validated during the project.
-All resources were intentionally deleted after validation to avoid unnecessary AWS charges.
+The repository contains screenshots documenting the implemented AWS infrastructure, including:
 
-Architecture diagrams and configuration steps accurately reflect the implemented setup.
+```text
+✓ CloudFront distribution
+✓ CloudFront application output
+✓ Application Load Balancer
+✓ ALB application output
+✓ Healthy Target Group
+✓ Running EC2 instances
+✓ VPC / Public Subnets
+✓ Architecture diagram
+```
 
 ---
-## Author
-*Nidhi Kumari*
+
+## ⚠️ Infrastructure Evidence Note
+
+The AWS resources were created and validated during the project and were intentionally deleted afterward to prevent ongoing AWS charges.
+
+The screenshots, architecture diagram, and cleanup documentation in this repository provide evidence of the implementation.
+
+The current repository primarily documents the **networking, edge-delivery, load-balancing, and compute layers**. Database-layer configuration artifacts are not included in the repository.
+
+---
+
+## 👩‍💻 Author
+
+**Nidhi Kumari**
+
+GitHub: [Nidhi8901](https://github.com/Nidhi8901)
+
+LinkedIn: [Nidhi Kumari](https://www.linkedin.com/in/nidhi-kumari-ba2a1a361)
+
+---
+
+⭐ If you found this project useful, consider starring the repository.
