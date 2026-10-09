@@ -1,165 +1,203 @@
+<div align="center">
+
 # Highly Available & Secure Web Infrastructure on AWS
 
-**AWS EC2 · Application Load Balancer · Auto Scaling · CloudFront · VPC · IAM · Security Groups**
+### CloudFront · Application Load Balancer · EC2 Auto Scaling · VPC · IAM
 
-A hands-on AWS infrastructure project demonstrating how a web application can be delivered through a **scalable, load-balanced, security-conscious architecture**. The implementation combines CloudFront edge delivery, an Application Load Balancer (ALB), EC2 compute, target-group health checks, Auto Scaling, and VPC networking.
+A hands-on AWS infrastructure project focused on **traffic distribution, scalable compute, controlled network access, and reliable application delivery**.
 
-> **Project status:** Implemented and documented. The AWS resources were intentionally deleted after validation to avoid ongoing charges. This repository retains the architecture, deployment screenshots, and cleanup documentation; it is **not** a currently running website.
+![AWS](https://img.shields.io/badge/Cloud-AWS-FF9900?style=flat-square&logo=amazonaws&logoColor=white)
+![Infrastructure](https://img.shields.io/badge/Focus-Cloud%20Infrastructure-1976D2?style=flat-square)
+![Project Status](https://img.shields.io/badge/Status-Completed-238636?style=flat-square)
+![Deployment](https://img.shields.io/badge/Deployment-Demonstrated%20%26%20Cleaned%20Up-555?style=flat-square)
 
-## Architecture
+**[Architecture](#architecture--request-flow) · [Implementation](#what-i-built) · [Technical Decisions](#engineering-decisions) · [Evidence](#deployment-evidence) · [Validation](#validation--project-scope)**
 
-![AWS infrastructure architecture](architecture/Architecture-diagram.jpeg)
+</div>
 
-```mermaid
-flowchart TD
-    U[Web user] --> CF[Amazon CloudFront]
-    CF --> ALB[Application Load Balancer]
-    ALB --> TG[Target group and health checks]
-    TG --> EC2[Amazon EC2 application instances]
-    ASG[EC2 Auto Scaling group] -. manages capacity .-> EC2
-    VPC[Amazon VPC and subnet networking] -. network boundary .-> ALB
-    VPC -. network boundary .-> EC2
+---
+
+## Project overview
+
+Instead of exposing a single EC2 instance as a website endpoint, this project uses an **edge-to-application delivery path**: Amazon CloudFront accepts the entry request, an Application Load Balancer (ALB) routes it to healthy registered instances, and an EC2 Auto Scaling Group manages the compute-capacity design. The surrounding VPC, subnet setup, security groups, and IAM define network and access boundaries.
+
+The AWS environment was **implemented, tested for the behaviors shown in the screenshots, and then deleted to avoid ongoing charges**. This is a documented infrastructure implementation—not a currently hosted live website or a one-command deployment template.
+
+| Design goal | AWS implementation |
+| :--- | :--- |
+| Distribute traffic | Application Load Balancer and target groups |
+| Support changing compute demand | EC2 Auto Scaling architecture |
+| Deliver through an edge endpoint | Amazon CloudFront distribution |
+| Control network and resource access | VPC, subnets, security groups, IAM |
+| Check application target health | ALB target-group health checks |
+| Keep project costs controlled | Resource cleanup after validation |
+
+## Architecture & request flow
+
+![Architecture diagram — CloudFront, ALB, target group, EC2 and VPC](architecture/Architecture-diagram.jpeg)
+
+```text
+                     Web user / browser
+                            |
+                            v
+                    Amazon CloudFront
+                            |
+                            v
+                  Application Load Balancer
+                            |
+                            v
+                 Target group + health checks
+                            |
+                            v
+                    EC2 application instances
+                            ^
+                            |
+                     EC2 Auto Scaling
+
+             AWS VPC · subnets · security groups
+                   IAM access controls
 ```
 
-**Request flow:** User → CloudFront → ALB → Target Group → EC2 → Application
+**Request path:** `Browser → CloudFront → ALB → Healthy target → EC2 application`
 
-CloudFront provides an edge-facing entry point. The ALB routes requests to registered, healthy EC2 targets. The Auto Scaling Group is used for compute-capacity management, while the VPC, subnets, security groups, and IAM provide infrastructure-level networking and access controls.
+The load balancer routes traffic only to healthy registered targets. The Auto Scaling Group provides a framework for managing EC2 capacity. Subnets and security controls provide the networking environment around these services.
 
-## What I implemented
+## What I built
 
-| Area | Implementation |
-| --- | --- |
-| Compute | Deployed EC2 instances for the application workload. |
-| Load balancing | Configured an Application Load Balancer and target group to route traffic to EC2 instances. |
-| Health monitoring | Checked target-group health and validated application access through the ALB. |
-| Scaling | Set up an EC2 Auto Scaling architecture to support changing compute requirements. |
-| Edge delivery | Configured CloudFront in front of the application and validated the output. |
-| Networking | Used an AWS VPC and public subnet configuration, with security-group controls and NAT-based outbound connectivity during setup. |
-| Access control | Used AWS IAM roles/policies to manage permissions. |
-| Cloud operations | Captured deployment evidence and removed AWS resources after testing to avoid ongoing costs. |
+### 1. Compute, load balancing, and target health
 
-## AWS services used
+- Deployed Amazon EC2 instances for the application workload.
+- Configured an **Application Load Balancer** with a target group to route HTTP application traffic to backend instances.
+- Inspected target-group health and validated that the application was reachable through the ALB endpoint.
+- Configured an **EC2 Auto Scaling** architecture to support capacity management.
 
-- **Amazon EC2:** Application compute.
-- **Application Load Balancer and Target Groups:** Request routing and backend health checks.
-- **EC2 Auto Scaling:** Managed capacity design.
-- **Amazon CloudFront:** Content delivery and edge entry point.
-- **Amazon VPC, Subnets, Internet Gateway, NAT Gateway:** Networking and traffic paths.
-- **Security Groups:** Network access control between components.
-- **AWS IAM:** Identity and permission management.
+### 2. Edge delivery with CloudFront
 
-## Deployment and validation evidence
+- Set up a CloudFront distribution in front of the application delivery path.
+- Verified application output through CloudFront and through the ALB.
+- Kept the entry-point architecture distinct from the underlying compute instances.
 
-The screenshots below document the AWS resources and application outputs observed during this project.
+### 3. VPC networking and access control
 
-### 1. CloudFront
+- Worked with an Amazon VPC, public subnets, security groups, and internet routing components.
+- Configured NAT-based outbound connectivity during the project setup.
+- Applied IAM roles/policies and network access rules to control infrastructure access.
 
-| Distribution | Application output |
-| --- | --- |
-| ![CloudFront distribution](screenshots/cloudfront/cloudfront-distribution.jpeg) | ![CloudFront application output](screenshots/cloudfront/cloudfront-output.jpeg) |
+### 4. Documentation and cloud operations
 
-CloudFront was configured in front of the load-balancing layer to serve as the public-facing entry point.
+- Recorded the infrastructure in an architecture diagram and AWS console screenshots.
+- Verified the implemented request flow and documented the relevant AWS resource states.
+- Removed deployed resources once the validation work was complete to prevent unnecessary ongoing charges.
 
-### 2. Load balancer
+## Engineering decisions
 
-| ALB configuration | Output served through ALB |
-| --- | --- |
-| ![Application Load Balancer](screenshots/load-balancer/alb.jpeg) | ![Application through ALB](screenshots/load-balancer/alb-output.jpeg) |
+| Decision | Why it matters | Evidence |
+| :--- | :--- | :--- |
+| Put an ALB in front of EC2 | Decouples the application entry point from individual instances and enables health-aware routing. | ALB output + target-group screenshots |
+| Use EC2 Auto Scaling | Establishes a capacity-management design rather than relying on one fixed instance. | Architecture and implementation documentation |
+| Add CloudFront | Provides an edge-facing distribution for application access. | Distribution configuration + application-output screenshots |
+| Use VPC and security groups | Separates networking concerns and defines allowed traffic between resources. | VPC/subnet screenshots and documented configuration |
+| Clean up the environment | Prevents continued billing after a learning/demo deployment. | [`notes/cleanup-steps.md`](notes/cleanup-steps.md) |
 
-The application was reached through the ALB rather than relying solely on a direct instance endpoint.
+## Deployment evidence
 
-### 3. Target-group health
+The screenshots are retained in the repository so the implemented setup can be inspected even after the AWS resources were deleted.
 
-![Healthy target group](screenshots/target-group/target-group-healthy.jpeg)
+### CloudFront — edge distribution and application response
 
-The target-group view shows the health-check state captured during validation. Health checks allow the ALB to route requests to healthy registered targets.
+| CloudFront distribution | Application accessed through CloudFront |
+| :---: | :---: |
+| ![CloudFront distribution configuration](screenshots/cloudfront/cloudfront-distribution.jpeg) | ![Application output through CloudFront](screenshots/cloudfront/cloudfront-output.jpeg) |
 
-### 4. EC2 compute
+### Application Load Balancer — configuration and response
 
-![EC2 instances](screenshots/ec2/running-ec2-instances.jpeg)
+| ALB resource | Application accessed through ALB |
+| :---: | :---: |
+| ![Application Load Balancer](screenshots/load-balancer/alb.jpeg) | ![Application output through ALB](screenshots/load-balancer/alb-output.jpeg) |
 
-### 5. VPC and public subnets
+<details>
+<summary><strong>More implementation screenshots — health checks, EC2 and VPC</strong></summary>
+
+#### Target-group health
+
+![Healthy ALB target group](screenshots/target-group/target-group-healthy.jpeg)
+
+#### Running EC2 instances
+
+![EC2 instances running](screenshots/ec2/running-ec2-instances.jpeg)
+
+#### VPC / public subnet configuration
 
 | Public subnet 1 | Public subnet 2 |
-| --- | --- |
-| ![VPC public subnet 1](screenshots/vpc-subnets/vpc-subnets-public-subnet-1.jpeg) | ![VPC public subnet 2](screenshots/vpc-subnets/vpc-subnets-public-subnet-2.jpeg) |
+| :---: | :---: |
+| ![Public subnet 1](screenshots/vpc-subnets/vpc-subnets-public-subnet-1.jpeg) | ![Public subnet 2](screenshots/vpc-subnets/vpc-subnets-public-subnet-2.jpeg) |
 
-The network layout was designed to support a multi-subnet AWS deployment.
+</details>
 
-## Validation summary
+## Validation & project scope
 
-The project documentation and screenshots demonstrate:
+| What was verified or documented | Status |
+| :--- | :--- |
+| Application output through the ALB | Documented with screenshot |
+| CloudFront distribution and application output | Documented with screenshots |
+| Healthy registered target-group state | Documented with screenshot |
+| Running EC2 instances and public subnets | Documented with screenshots |
+| AWS resource cleanup | Documented in repository notes |
+| Simulated Availability Zone failure / zero-downtime recovery | **Not documented as tested** |
+| Measured Auto Scaling recovery time or load-test results | **Not documented as tested** |
+| RDS or a separately deployed database layer | **Not part of the documented implementation** |
 
-- CloudFront distribution and application output.
-- ALB setup and application access through the load balancer.
-- Registered target-group health status.
-- Running EC2 compute instances.
-- VPC subnet configuration and infrastructure documentation.
+**High availability** here describes the infrastructure *design approach*. The repository does not claim a measured outage-recovery result, an RDS Multi-AZ implementation, or a completed three-tier application.
 
-**Scope clarification:** This repository demonstrates a **high-availability-oriented design**. It does **not** document an Availability Zone outage simulation, a measured zero-downtime recovery test, a specific Auto Scaling recovery time, or an RDS Multi-AZ deployment. Those results should not be claimed without separate implementation and evidence.
+## Implementation outline
 
-### Why the repository is not labeled “3-tier”
+This is a **console-configured, screenshot-documented project**, not an IaC deployment kit. The following sequence explains how to reproduce the *general architecture*; it is not an automated script or a claim of additional validation steps.
 
-The current evidence primarily covers **edge delivery, networking, load balancing, and compute**. A separate application/database tier and its configuration artifacts are not documented. The title therefore reflects the infrastructure that can actually be demonstrated, rather than claiming a completed three-tier application.
+1. Configure a VPC, subnets, routing, security groups, and the needed IAM permissions.
+2. Prepare EC2 compute instances and an application listener.
+3. Create a target group, attach an ALB, and configure the health checks.
+4. Configure an EC2 Auto Scaling Group for the compute layer.
+5. Create a CloudFront distribution pointing to the application entry point.
+6. Confirm application access via the ALB and CloudFront, and inspect target-group health.
+7. Capture evidence and remove the temporary AWS resources when no longer needed.
 
-## Repository structure
+## Repository layout
 
 ```text
 .
 ├── README.md
 ├── architecture/
 │   └── Architecture-diagram.jpeg
-├── notes/
-│   └── cleanup-steps.md
-└── screenshots/
-    ├── cloudfront/
-    │   ├── cloudfront-distribution.jpeg
-    │   └── cloudfront-output.jpeg
-    ├── ec2/
-    │   └── running-ec2-instances.jpeg
-    ├── load-balancer/
-    │   ├── alb.jpeg
-    │   └── alb-output.jpeg
-    ├── target-group/
-    │   └── target-group-healthy.jpeg
-    └── vpc-subnets/
-        ├── vpc-subnets-public-subnet-1.jpeg
-        └── vpc-subnets-public-subnet-2.jpeg
+├── screenshots/
+│   ├── cloudfront/
+│   ├── ec2/
+│   ├── load-balancer/
+│   ├── target-group/
+│   └── vpc-subnets/
+└── notes/
+    └── cleanup-steps.md
 ```
 
-> Image paths above are preserved from the original project documentation. Keep the existing `architecture/`, `screenshots/`, and `notes/` folders in the repository when replacing this README.
+## Cost management & cleanup
 
-## How the project was deployed
+Because ALB, CloudFront, NAT Gateway, EC2, and related AWS services can incur charges, the resources were intentionally removed after validation. The cleanup record covers CloudFront, the ALB and target group, the Auto Scaling Group, EC2, NAT Gateway, associated network resources, and supporting infrastructure.
 
-This repository is a **documented hands-on implementation**, not an Infrastructure-as-Code deployment kit. The AWS environment was configured and validated as part of the project and subsequently cleaned up. The screenshots and architecture diagram are the project evidence; there is no `terraform apply` or one-command deployment process supplied here.
+**[Read the AWS resource cleanup notes →](notes/cleanup-steps.md)**
 
-For someone recreating the same general architecture, the work is typically organized into the following phases:
+## Potential next improvements
 
-1. Create the VPC, subnets, and required internet/network routing.
-2. Configure security groups and IAM permissions for the necessary AWS services.
-3. Prepare the application on EC2 and register instances with an ALB target group.
-4. Configure ALB listeners, routes, and target-group health checks.
-5. Configure an Auto Scaling Group for EC2 capacity management.
-6. Create a CloudFront distribution pointing to the application entry point.
-7. Validate instance/target health, access through the ALB, and CloudFront output.
-8. Capture evidence and remove the temporary AWS resources when finished.
+These are **future enhancements**, not claims about the present project:
 
-These steps summarize the architecture; they are **not** automated deployment instructions or a claim that outage/load tests were performed.
+- Terraform or CloudFormation templates for a repeatable deployment.
+- Recorded load testing and Auto Scaling behavior with actual metrics.
+- Controlled EC2/AZ failure testing with recovery-time measurements.
+- A separately documented application/database tier, if the project expands.
+- CloudWatch alarms and more complete operational dashboards.
 
-## Cleanup and cost management
+---
 
-All provisioned project resources were removed after validation to limit AWS charges. Cleanup covered the CloudFront distribution, ALB, target groups, Auto Scaling Group, EC2, NAT Gateway, associated network resources, and related infrastructure.
-
-See [AWS resource cleanup steps](notes/cleanup-steps.md) for the recorded procedure.
-
-## Future enhancements (not implemented in the documented project)
-
-- Add repeatable Terraform or CloudFormation templates.
-- Extend the implementation with a documented application and RDS database layer.
-- Configure CloudWatch alerts, load-test scenarios, and recorded Auto Scaling behavior.
-- Test instance/AZ failure scenarios and record recovery metrics.
-- Add HTTPS end-to-end validation and automated security checks.
-
-## Author
+<div align="center">
 
 **Nidhi Kumari** · [GitHub](https://github.com/Nidhi8901) · [Portfolio](https://nidhikumari-portfolio.netlify.app)
+
+</div>
